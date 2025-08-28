@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Thaigen EMO Social</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<header class="topbar">
+<div class="logo">Thaigen • EMO</div>
+<nav id="nav" class="nav"></nav>
+</header>
+
+
+<main id="app" class="container"></main>
+
+
+<template id="tpl-login">
+<section class="card">
+<h2>เข้าสู่ระบบ / สมัคร</h2>
+<label>อีเมล <input id="email" type="email" placeholder="you@example.com"></label>
+<label>รหัสผ่าน <input id="password" type="password" placeholder="••••••••"></label>
+<label>แฮนด์เดิล <input id="handle" type="text" placeholder="yourname"> <small>สมัครครั้งแรกเท่านั้น</small></label>
+<label>ชื่อแสดงผล <input id="display" type="text" placeholder="ชื่อของคุณ"></label>
+<div class="row">
+<button data-act="login">เข้าสู่ระบบ</button>
+<button data-act="register" class="primary">สมัครใช้งาน</button>
+</div>
+</section>
+</template>
+
+
+<template id="tpl-home">
+<section class="composer card">
+<textarea id="post-text" rows="3" placeholder="คุณรู้สึกอย่างไรตอนนี้…"></textarea>
+<div class="row">
+<select id="mood">
+<option value="">— เลือกอารมณ์ —</option>
+<option>joy</option><option>calm</option><option>sad</option><option>angry</option>
+<option>inspired</option><option>grateful</option><option>playful</option><option>urgent</option>
+</select>
+<button id="post-btn" class="primary">โพสต์</button>
+</div>
+</section>
+
+
+<section class="feed" id="feed"></section>
+</template>
+
+
+<script src="/app.js" type="module"></script>
+</body>
+</html>

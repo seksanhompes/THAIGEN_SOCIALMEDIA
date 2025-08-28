@@ -1,0 +1,22 @@
+:root{ --bg:#121315; --card:#1a1b1e; --muted:#b7bec7; --fg:#e8ebef; --accent:#8ad2ff; --border:#2a2c31; }
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{ margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans Thai", sans-serif; background:var(--bg); color:var(--fg); }
+.topbar{ position:sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:rgba(18,19,21,.9); backdrop-filter:saturate(120%) blur(6px); border-bottom:1px solid var(--border); }
+.logo{ font-weight:700; letter-spacing:.2px; opacity:.9; }
+.nav button{ margin-left:8px; }
+.container{ max-width:720px; margin:24px auto; padding:0 12px; }
+.card{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:14px; }
+label{ display:block; margin:8px 0; font-size:.95rem; color:var(--muted); }
+input, textarea, select{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#121418; color:var(--fg); }
+.row{ display:flex; gap:10px; align-items:center; }
+button{ cursor:pointer; border:1px solid var(--border); background:#191c20; color:var(--fg); padding:10px 14px; border-radius:10px; }
+button.primary{ background:#20242a; border-color:#2c3137; }
+.feed .post{ padding:12px; display:flex; gap:10px; }
+.post .avatar{ width:38px; height:38px; border-radius:999px; background:#272a30; flex:0 0 38px; display:flex; align-items:center; justify-content:center; font-size:.8rem; color:#8aa; }
+.post .body{ flex:1; }
+.meta{ color:#96a0ab; font-size:.85rem; margin-bottom:8px; }
+.actions{ display:flex; gap:8px; margin-top:8px; }
+.actions button{ font-size:.9rem; }
+.badge{ padding:2px 8px; border:1px solid var(--border); border-radius:999px; font-size:.75rem; color:#a9b3be; margin-left:6px; }
+.empty{ opacity:.7; text-align:center; padding:24px; }
