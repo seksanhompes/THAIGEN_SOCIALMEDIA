@@ -1,8 +1,4 @@
 CREATE TABLE IF NOT EXISTS users (
-);
-
-
-CREATE TABLE IF NOT EXISTS views (
 id TEXT PRIMARY KEY,
 post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
 user_id TEXT,
@@ -39,7 +35,7 @@ CREATE TABLE IF NOT EXISTS payouts (
 id TEXT PRIMARY KEY,
 post_id TEXT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
 amount REAL NOT NULL,
-status TEXT NOT NULL, -- pending|approved|paid|rejected
+status TEXT NOT NULL, 
 ts INTEGER NOT NULL
 );
 
