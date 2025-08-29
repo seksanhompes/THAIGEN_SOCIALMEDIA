@@ -1,6 +1,8 @@
-import { clearAuthCookie } from '../../_lib/auth.js';
-
-
-export const onRequestPost = async () => {
-return new Response(JSON.stringify({ ok:true }), { status:200, headers:{ 'content-type':'application/json', 'set-cookie': clearAuthCookie() }});
-};
+export async function onRequestPost() {
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: {
+      'content-type': 'application/json',
+      'Set-Cookie': 'auth=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0'
+    }
+  });
+}

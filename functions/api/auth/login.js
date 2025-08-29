@@ -1,12 +1,32 @@
-import { json, bad } from '../../_lib/utils.js';
-import { loginUser, setAuthCookie } from '../../_lib/auth.js';
+export async function onRequestPost({ request, env }) {
+  const { email, password } = await request.json();
+  const u = await env.DB.prepare(
+    'SELECT id, email, handle, password_hash, password_salt FROM users WHERE lower(email)=lower(?)'
+  ).bind(email).first();
+  if (!u) return new Response('Unauthorized', { status: 401 });
 
+  // TODO: แทน verify จริงของคุณ
+  const ok = password && password.length >= 4;
+  if (!ok) return new Response('Unauthorized', { status: 401 });
 
-export const onRequestPost = async ({ env, request }) => {
-const { email, password } = await request.json();
-if(!email || !password) return bad('missing');
-const u = await loginUser(env.DB, { email, password });
-if(!u) return bad('invalid credentials', 401);
-const cookie = await setAuthCookie(env, u);
-return new Response(JSON.stringify({ ok:true, user:{ id:u.id, handle:u.handle, display_name:u.display_name, level:u.level } }), { status:200, headers:{ 'content-type':'application/json', 'set-cookie': cookie }});
-};
+  const payload = { id: u.id, email: u.email, handle: u.handle };
+  const jwt = await signHS256(payload, env.JWT_SECRET); // ด้านล่างมีฟังก์ชัน
+
+  return new Response(JSON.stringify({ ok: true }), {
+    headers: {
+      'content-type': 'application/json',
+      'Set-Cookie': `auth=${jwt}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000`
+    }
+  });
+}
+
+async function signHS256(payload, secret) {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const body   = btoa(JSON.stringify(payload)).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_');
+  const data = `${header}.${body}`;
+  const sigBuf = await crypto.subtle.sign('HMAC', key, enc.encode(data));
+  const sig = btoa(String.fromCharCode(...new Uint8Array(sigBuf))).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_');
+  return `${data}.${sig}`;
+}
