@@ -1,28 +1,37 @@
-import { authUser } from '../_lib/auth.js';
-import { json, bad, uid } from '../_lib/utils.js';
-import { embedTextEmotion, parseMoodHint, mixVectors } from '../_lib/emo.js';
+export async function onRequestPost({ request, env }) {
+  try {
+    // อ่านคุกกี้ auth แล้วถอด JWT
+    const m = /(?:^|;\s*)auth=([^;]+)/.exec(request.headers.get('cookie') || '');
+    if (!m) return jerr('Unauthorized', 401);
+    const me = await verifyHS256(m[1], env.JWT_SECRET).catch(() => null);
+    if (!me) return jerr('Unauthorized', 401);
 
+    const { text = '', mood_hint = null } = await request.json().catch(() => ({}));
+    const bodyText = String(text).trim();
+    if (!bodyText) return jerr('ใส่ข้อความก่อนโพสต์', 400);
 
-export const onRequestGet = async ({ env, request }) => {
-const url = new URL(request.url);
-const user = await authUser(env, request);
-const limit = Math.min(parseInt(url.searchParams.get('limit')||'20',10), 50);
-const rows = await env.DB.prepare(`SELECT p.*, u.handle, u.display_name FROM posts p JOIN users u ON p.user_id=u.id ORDER BY created_at DESC LIMIT ?`).bind(limit).all();
-return json({ ok:true, posts: rows.results });
-};
+    const id = crypto.randomUUID();
+    await env.DB.prepare(
+      `INSERT INTO posts (id, user_id, text, mood_hint, created_at)
+       VALUES (?, ?, ?, ?, CAST(unixepoch()*1000 AS INTEGER))`
+    ).bind(id, me.id, bodyText, mood_hint || null).run();
 
-
-export const onRequestPost = async ({ env, request }) => {
-const user = await authUser(env, request);
-if(!user) return bad('unauth', 401);
-const body = await request.json();
-const { text, mood_hint, media_url, topic_tags } = body || {};
-const id = uid();
-const created_at = Date.now();
-const eText = embedTextEmotion(text||'');
-const eHint = parseMoodHint(mood_hint);
-const e = mixVectors(eText, eHint);
-await env.DB.prepare(`INSERT INTO posts (id,user_id,type,text,media_url,topic_tags,mood_hint,emotion_json,created_at) VALUES (?,?,?,?,?,?,?,?,?)`)
-.bind(id, user.id, 'text', text||'', media_url||'', JSON.stringify(topic_tags||[]), mood_hint||null, JSON.stringify(e), created_at).run();
-return json({ ok:true, id });
-};
+    return Response.json({ ok: true, post: { id } });
+  } catch (e) {
+    console.error('POSTS_ERROR', e);
+    return jerr(String(e), 500);
+  }
+}
+function jerr(msg, status=400){
+  return new Response(JSON.stringify({ ok:false, error: msg }),
+    { status, headers: { 'content-type':'application/json' } });
+}
+async function verifyHS256(jwt, secret){
+  const enc = new TextEncoder();
+  const [h,b,s] = jwt.split('.');
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name:'HMAC', hash:'SHA-256' }, false, ['verify']);
+  const ok = await crypto.subtle.verify('HMAC', key, base64urlToBytes(s), enc.encode(`${h}.${b}`));
+  if (!ok) throw new Error('bad sig');
+  return JSON.parse(atob(b.replace(/-/g,'+').replace(/_/g,'/')));
+}
+function base64urlToBytes(str){ const bin=atob(str.replace(/-/g,'+').replace(/_/g,'/')); return Uint8Array.from(bin,c=>c.charCodeAt(0)); }
