@@ -4,11 +4,12 @@ export async function onRequestGet({ request, env }) {
   if (!m) return new Response('Unauthorized', { status: 401 });
 
   const token = m[1];
-  const payload = await verifyHS256(token, env.JWT_SECRET).catch(() => null);
-  if (!payload) return new Response('Unauthorized', { status: 401 });
-
-  // ดึงข้อมูลล่าสุดจาก DB ก็ได้
-  return Response.json({ user: { id: payload.id, email: payload.email, handle: payload.handle } });
+  try {
+    const payload = await verifyHS256(token, env.JWT_SECRET);
+    return Response.json({ user: { id: payload.id, email: payload.email, handle: payload.handle } });
+  } catch {
+    return new Response('Unauthorized', { status: 401 });
+  }
 }
 
 async function verifyHS256(jwt, secret) {

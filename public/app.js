@@ -1,47 +1,55 @@
 (() => {
   'use strict';
+
   console.log('boot OK');
 
   const $ = (sel) => document.querySelector(sel);
   const app = $('#app');
   const nav = $('#nav');
 
-  // ---- helper: fetch ที่พาคุกกี้ไปด้วยทุกครั้ง ----
+  // ---- helper: ส่งคุกกี้ไปกับทุก request ----
   async function api(path, init = {}) {
-    const opts = {
-      credentials: 'include',                   // << สำคัญ!
-      ...init,
-    };
-    return fetch(path, opts);
+    return fetch(path, { credentials: 'include', ...init });
   }
 
-  // state
+  // ---- state ----
   let me = null;
   let sessionId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random());
 
+  // ---- UI: Top Nav ----
   function navRender() {
     nav.innerHTML = '';
     if (me) {
-      const b1 = Object.assign(document.createElement('button'), { textContent: `@${me.handle}` });
-      const b2 = Object.assign(document.createElement('button'), { textContent: 'ฟีด' });
-      const b3 = Object.assign(document.createElement('button'), { textContent: 'ออกจากระบบ' });
+      const b1 = Object.assign(document.createElement('button'), { textContent: `@${me.handle}`, type: 'button' });
+      const b2 = Object.assign(document.createElement('button'), { textContent: 'ฟีด', type: 'button' });
+      const b3 = Object.assign(document.createElement('button'), { textContent: 'ออกจากระบบ', type: 'button' });
       b2.onclick = () => renderHome();
       b3.onclick = async () => {
-        await api('/api/auth/logout', { method: 'POST' }); // << include cookies
+        await api('/api/auth/logout', { method: 'POST' });
         me = null;
         renderLogin();
       };
       nav.append(b1, b2, b3);
     } else {
-      const b = Object.assign(document.createElement('button'), { textContent: 'เข้าสู่ระบบ' });
-      b.onclick = () => renderLogin();
+      const b = Object.assign(document.createElement('button'), {
+        textContent: 'เข้าสู่ระบบ',
+        type: 'button',
+        id: 'nav-login'
+      });
+      b.onclick = () => {
+        // ถ้ามีฟอร์มอยู่แล้วให้สั่งล็อกอินทันที ไม่งั้นค่อยแสดงฟอร์ม
+        if ($('#email') && $('#password')) return handleLogin();
+        renderLogin();
+        setTimeout(() => $('#email')?.focus(), 0);
+      };
       nav.append(b);
     }
   }
 
+  // ---- auth helpers ----
   async function getMe() {
     try {
-      const r = await api('/api/auth/me');     // << include cookies
+      const r = await api('/api/auth/me');
       if (!r.ok) return null;
       const j = await r.json();
       return j.user;
@@ -50,6 +58,33 @@
     }
   }
 
+  async function handleLogin(ev) {
+    const btn = ev?.currentTarget;
+    if (btn) btn.disabled = true;
+    try {
+      const email = $('#email')?.value.trim();
+      const password = $('#password')?.value || '';
+      if (!email || !password) { alert('กรอกอีเมลและรหัสผ่าน'); return; }
+
+      const r = await api('/api/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { alert(j.error || 'ล็อกอินล้มเหลว'); return; }
+
+      const meRes = await api('/api/auth/me');
+      if (!meRes.ok) { alert('ตรวจสอบเซสชันไม่สำเร็จ'); return; }
+      const meJson = await meRes.json();
+      me = meJson.user;
+      renderHome();
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  // ---- screens ----
   function renderLogin() {
     navRender();
     app.innerHTML = `
@@ -75,26 +110,7 @@
       </section>
     `;
 
-    $('#btn-login').onclick = async (ev) => {
-      const btn = ev.currentTarget; btn.disabled = true;
-      try {
-        const email = $('#email').value.trim();
-        const password = $('#password').value;
-        const r = await api('/api/auth/login', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const j = await r.json().catch(() => ({}));
-        if (!r.ok) { alert(j.error || 'ล็อกอินล้มเหลว'); return; }
-        // หลัง login สำเร็จ เซิร์ฟเวอร์ควร Set-Cookie: auth=...
-        const meRes = await api('/api/auth/me');
-        if (!meRes.ok) { alert('ตรวจสอบเซสชันไม่สำเร็จ'); return; }
-        const meJson = await meRes.json();
-        me = meJson.user;
-        renderHome();
-      } finally { btn.disabled = false; }
-    };
+    $('#btn-login').onclick = handleLogin;
 
     $('#btn-register').onclick = async (ev) => {
       const btn = ev.currentTarget; btn.disabled = true;
@@ -102,7 +118,8 @@
         const email = $('#email').value.trim();
         const password = $('#password').value;
         const handle = $('#handle').value.trim();
-        const display_name = ($('#display').value.trim() || handle);
+        const display_name = $('#display').value.trim() || handle;
+
         const r = await api('/api/auth/register', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -110,6 +127,7 @@
         });
         const j = await r.json().catch(() => ({}));
         if (!r.ok) { alert(j.error || 'สมัครล้มเหลว'); return; }
+
         const meRes = await api('/api/auth/me');
         if (!meRes.ok) { alert('ตรวจสอบเซสชันไม่สำเร็จ'); return; }
         const meJson = await meRes.json();
@@ -118,8 +136,6 @@
       } finally { btn.disabled = false; }
     };
   }
-
-  function htm(s) { const d = document.createElement('div'); d.innerHTML = s; return d.firstElementChild; }
 
   async function renderHome() {
     navRender();
@@ -230,6 +246,9 @@
     }
   }
 
+  // ---- utils ----
+  function htm(s) { const d = document.createElement('div'); d.innerHTML = s; return d.firstElementChild; }
+
   async function react(id, type) {
     const r = await api('/api/react', {
       method: 'POST',
@@ -253,9 +272,9 @@
     })[m]);
   }
 
-  // bootstrap
+  // ---- bootstrap ----
   (async () => {
-    me = await getMe();                 // จะสำเร็จได้เมื่อ cookie ถูกส่งกลับไปด้วย
+    me = await getMe();            // จะสำเร็จเมื่อเซิร์ฟเวอร์ตั้งคุกกี้ auth แล้ว
     me ? renderHome() : renderLogin();
   })();
 
