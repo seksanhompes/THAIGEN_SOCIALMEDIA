@@ -6,6 +6,15 @@
   const app = $('#app');
   const nav = $('#nav');
 
+  // ---- helper: fetch ที่พาคุกกี้ไปด้วยทุกครั้ง ----
+  async function api(path, init = {}) {
+    const opts = {
+      credentials: 'include',                   // << สำคัญ!
+      ...init,
+    };
+    return fetch(path, opts);
+  }
+
   // state
   let me = null;
   let sessionId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Math.random());
@@ -18,7 +27,7 @@
       const b3 = Object.assign(document.createElement('button'), { textContent: 'ออกจากระบบ' });
       b2.onclick = () => renderHome();
       b3.onclick = async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
+        await api('/api/auth/logout', { method: 'POST' }); // << include cookies
         me = null;
         renderLogin();
       };
@@ -32,7 +41,7 @@
 
   async function getMe() {
     try {
-      const r = await fetch('/api/auth/me');
+      const r = await api('/api/auth/me');     // << include cookies
       if (!r.ok) return null;
       const j = await r.json();
       return j.user;
@@ -46,43 +55,67 @@
     app.innerHTML = `
       <section class="card">
         <h2>เข้าสู่ระบบ / สมัคร</h2>
-        <label>อีเมล <input id="email" type="email" placeholder="you@example.com"></label>
-        <label>รหัสผ่าน <input id="password" type="password" placeholder="••••••••"></label>
-        <label>แฮนด์เดิล <input id="handle" type="text" placeholder="yourname"> <small>สมัครครั้งแรกเท่านั้น</small></label>
-        <label>ชื่อแสดงผล <input id="display" type="text" placeholder="ชื่อของคุณ"></label>
+        <label>อีเมล
+          <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+        </label>
+        <label>รหัสผ่าน
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+        </label>
+        <label>แฮนด์เดิล
+          <input id="handle" type="text" placeholder="yourname" autocomplete="username">
+          <small>สมัครครั้งแรกเท่านั้น</small>
+        </label>
+        <label>ชื่อแสดงผล
+          <input id="display" type="text" placeholder="ชื่อของคุณ" autocomplete="name">
+        </label>
         <div class="row">
-          <button id="btn-login">เข้าสู่ระบบ</button>
-          <button id="btn-register" class="primary">สมัครใช้งาน</button>
+          <button id="btn-login" type="button">เข้าสู่ระบบ</button>
+          <button id="btn-register" class="primary" type="button">สมัครใช้งาน</button>
         </div>
       </section>
     `;
 
-    $('#btn-login').onclick = async () => {
-      const email = $('#email').value.trim();
-      const password = $('#password').value;
-      const r = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) { alert(j.error || 'ล็อกอินล้มเหลว'); return; }
-      me = j.user; renderHome();
+    $('#btn-login').onclick = async (ev) => {
+      const btn = ev.currentTarget; btn.disabled = true;
+      try {
+        const email = $('#email').value.trim();
+        const password = $('#password').value;
+        const r = await api('/api/auth/login', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { alert(j.error || 'ล็อกอินล้มเหลว'); return; }
+        // หลัง login สำเร็จ เซิร์ฟเวอร์ควร Set-Cookie: auth=...
+        const meRes = await api('/api/auth/me');
+        if (!meRes.ok) { alert('ตรวจสอบเซสชันไม่สำเร็จ'); return; }
+        const meJson = await meRes.json();
+        me = meJson.user;
+        renderHome();
+      } finally { btn.disabled = false; }
     };
 
-    $('#btn-register').onclick = async () => {
-      const email = $('#email').value.trim();
-      const password = $('#password').value;
-      const handle = $('#handle').value.trim();
-      const display_name = $('#display').value.trim() || handle;
-      const r = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, password, handle, display_name })
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) { alert(j.error || 'สมัครล้มเหลว'); return; }
-      me = j.user; renderHome();
+    $('#btn-register').onclick = async (ev) => {
+      const btn = ev.currentTarget; btn.disabled = true;
+      try {
+        const email = $('#email').value.trim();
+        const password = $('#password').value;
+        const handle = $('#handle').value.trim();
+        const display_name = ($('#display').value.trim() || handle);
+        const r = await api('/api/auth/register', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email, password, handle, display_name })
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { alert(j.error || 'สมัครล้มเหลว'); return; }
+        const meRes = await api('/api/auth/me');
+        if (!meRes.ok) { alert('ตรวจสอบเซสชันไม่สำเร็จ'); return; }
+        const meJson = await meRes.json();
+        me = meJson.user;
+        renderHome();
+      } finally { btn.disabled = false; }
     };
   }
 
@@ -92,31 +125,34 @@
     navRender();
     app.innerHTML = `
       <section class="composer card">
-        <textarea id="post-text" rows="3" placeholder="คุณรู้สึกอย่างไรตอนนี้…"></textarea>
+        <textarea id="post-text" rows="3" placeholder="คุณรู้สึกอย่างไรตอนนี้…" autocomplete="off"></textarea>
         <div class="row">
           <select id="mood">
             <option value="">— เลือกอารมณ์ —</option>
             <option>joy</option><option>calm</option><option>sad</option><option>angry</option>
             <option>inspired</option><option>grateful</option><option>playful</option><option>urgent</option>
           </select>
-          <button id="post-btn" class="primary">โพสต์</button>
+          <button id="post-btn" class="primary" type="button">โพสต์</button>
         </div>
       </section>
       <section class="feed" id="feed"></section>
     `;
 
-    $('#post-btn').onclick = async () => {
-      const text = $('#post-text').value.trim();
-      const mood_hint = $('#mood').value || '';
-      const r = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ text, mood_hint })
-      });
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) { alert(j.error || 'โพสต์ไม่สำเร็จ'); return; }
-      $('#post-text').value = '';
-      loadFeed();
+    $('#post-btn').onclick = async (ev) => {
+      const btn = ev.currentTarget; btn.disabled = true;
+      try {
+        const text = $('#post-text').value.trim();
+        const mood_hint = $('#mood').value || '';
+        const r = await api('/api/posts', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ text, mood_hint })
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) { alert(j.error || 'โพสต์ไม่สำเร็จ'); return; }
+        $('#post-text').value = '';
+        await loadFeed();
+      } finally { btn.disabled = false; }
     };
 
     await loadFeed();
@@ -128,7 +164,7 @@
 
     let j;
     try {
-      const r = await fetch('/api/feed?limit=30');
+      const r = await api('/api/feed?limit=30');
       j = await r.json();
       if (!r.ok) throw new Error(j.error || 'feed error');
     } catch {
@@ -142,7 +178,7 @@
       entries.forEach(async en => {
         if (en.isIntersecting) {
           const postId = en.target.dataset.id;
-          await fetch('/api/events', {
+          await api('/api/events', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({ post_id: postId, session_id: sessionId, dwell_ms: 900 })
@@ -166,11 +202,11 @@
             <div class="meta">@${p.handle} · ${timeAgo(p.created_at)} ${levelBadge}</div>
             <div class="text">${escapeHTML(p.text || '')}</div>
             <div class="actions">
-              <button data-act="like">ถูกใจ</button>
-              <button data-act="wow">ว้าว</button>
-              <button data-act="sad">เศร้า</button>
-              <button data-act="share">แชร์</button>
-              <button data-act="payout">รายได้</button>
+              <button data-act="like"   type="button">ถูกใจ</button>
+              <button data-act="wow"    type="button">ว้าว</button>
+              <button data-act="sad"    type="button">เศร้า</button>
+              <button data-act="share"  type="button">แชร์</button>
+              <button data-act="payout" type="button">รายได้</button>
             </div>
           </div>
         </article>
@@ -184,7 +220,8 @@
         else alert('คัดลอกลิงก์แล้ว');
       };
       el.querySelector('[data-act="payout"]').onclick = async () => {
-        const r = await fetch(`/api/payouts?post_id=${p.id}`); const jj = await r.json();
+        const r = await api(`/api/payouts?post_id=${p.id}`);
+        const jj = await r.json().catch(()=>({}));
         alert(jj.eligible ? `เข้าเกณฑ์ • ประมาณการจ่าย: $${jj.estimate}` : 'ยังไม่เข้าเกณฑ์');
       };
 
@@ -194,7 +231,7 @@
   }
 
   async function react(id, type) {
-    const r = await fetch('/api/react', {
+    const r = await api('/api/react', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ post_id: id, type })
@@ -212,17 +249,13 @@
 
   function escapeHTML(str = '') {
     return String(str).replace(/[&<>"']/g, (m) => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     })[m]);
   }
 
   // bootstrap
   (async () => {
-    me = await getMe();
+    me = await getMe();                 // จะสำเร็จได้เมื่อ cookie ถูกส่งกลับไปด้วย
     me ? renderHome() : renderLogin();
   })();
 
