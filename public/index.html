@@ -2,19 +2,30 @@
 <html lang="th">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
   <title>Thaigen • EMO</title>
-
-  <!-- ใส่สไตล์ของคุณเองได้ตามต้องการ -->
-  <link rel="stylesheet" href="/style.css" />
-
-  <!-- กันแคชไฟล์ JS: แก้เลข v= ทุกครั้งที่อัปเดต -->
-  <script src="/app.js?v=9" defer></script>
+  <link rel="stylesheet" href="/style.css?v=12">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ccircle cx='64' cy='64' r='60' fill='%234F46E5'/%3E%3Ctext x='64' y='82' font-size='76' text-anchor='middle' fill='white'%3E%F0%9F%98%84%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
-  <header>
-    <nav id="nav"></nav>
+  <header id="topbar" class="topbar">
+    <button id="btn-back" class="icon-btn hide" aria-label="ย้อนกลับ">◀️</button>
+    <div class="brand">Thaigen • EMO</div>
+    <nav id="nav" class="nav"></nav>
   </header>
-  <main id="app"></main>
+
+  <main id="app" class="app"></main>
+
+  <!-- แถบล่างแบบโมบาย -->
+  <nav class="tabbar" id="tabbar">
+    <button data-tab="home" class="active">🏠<span>หน้าแรก</span></button>
+    <button data-tab="explore">🔎<span>สำรวจ</span></button>
+    <button data-tab="post" class="cta">➕<span>โพสต์</span></button>
+    <button data-tab="noti">🔔<span>แจ้งเตือน</span></button>
+    <button data-tab="me">👤<span>โปรไฟล์</span></button>
+  </nav>
+
+  <script src="/app.js?v=12"></script>
 </body>
 </html>
