@@ -1,14 +1,12 @@
-/* ====== Minimal Mobile Theme (No-gradient, No blue) ====== */
+/* ===== Minimal, monochrome icons & UI (no color icons, no gradient) ===== */
 :root{
   --bg:#f5f5f4;            /* stone-100 */
   --card:#ffffff;
   --text:#1f2937;          /* slate-800 */
   --muted:#6b7280;         /* slate-500/600 */
   --line:#e5e7eb;          /* gray-200 */
-  --accent:#8c7851;        /* mushroom brown (ไม่สด ไม่ฉูดฉาด) */
-  --accent-weak:#f1ede6;   /* อ่อนมาก ใช้พื้นปุ่ม/ไฮไลต์ */
-  --success:#15803d;       /* เขียวเข้ม (ใช้เล็กน้อย) */
-  --danger:#b91c1c;        /* แดงเข้ม (ใช้เล็กน้อย) */
+  --accent:#8c7851;        /* earth tone – ใช้น้อย */
+  --accent-weak:#f1ede6;   /* อ่อนมาก */
   --radius:16px;
   --shadow:0 8px 24px rgba(17,24,39,.06);
   --maxw:520px;
@@ -20,34 +18,33 @@ body{
   margin:0;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Thai", "Noto Sans", "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
   color:var(--text);
-  background:var(--bg); /* สีทึบ ไม่มีกราเดียน */
+  background:var(--bg);
 }
 
-/* ====== Topbar ====== */
+/* ---------- Icons (SVG use currentColor) ---------- */
+.ic { width:1.2em; height:1.2em; display:inline-block; vertical-align:-0.18em; }
+.ic > svg{ width:100%; height:100%; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+/* ---------- Topbar ---------- */
 .topbar{
   position:sticky; top:0; z-index:10;
   display:flex; align-items:center; gap:10px;
   height:56px; padding:0 14px;
-  background:#fff;                 /* ไม่มี blur/gradient */
-  border-bottom:1px solid var(--line);
+  background:#fff; border-bottom:1px solid var(--line);
 }
 .brand{font-weight:700; letter-spacing:.2px}
-.nav{margin-left:auto; display:flex; gap:10px}
+.nav{margin-left:auto; display:flex; gap:8px}
 .icon-btn{
-  appearance:none; border:0; background:transparent; font-size:18px; line-height:1;
+  appearance:none; border:0; background:transparent; color:var(--text);
   padding:8px; border-radius:12px; cursor:pointer;
 }
 .icon-btn:hover{background:#f4f4f5}
 .hide{display:none !important}
 
-/* ====== App Container ====== */
-.app{
-  max-width:var(--maxw);
-  margin:12px auto 88px;
-  padding:0 12px 12px;
-}
+/* ---------- App Container ---------- */
+.app{ max-width:var(--maxw); margin:12px auto 88px; padding:0 12px 12px; }
 
-/* ====== Cards ====== */
+/* ---------- Cards ---------- */
 .card{
   background:var(--card);
   border:1px solid var(--line);
@@ -58,65 +55,54 @@ body{
 .card + .card{margin-top:12px}
 .card.empty{color:var(--muted); text-align:center}
 
-/* ====== Buttons & Inputs (โทนเอิร์ธ ไม่มีน้ำเงิน) ====== */
+/* ---------- Inputs & Buttons ---------- */
 button{
   font:inherit; cursor:pointer; user-select:none;
   border:1px solid var(--line); background:#fff;
-  padding:10px 14px; border-radius:14px;
-  color:var(--text);
+  padding:10px 14px; border-radius:14px; color:var(--text);
 }
-button.primary{
-  background:var(--accent); color:#fff; border-color:transparent;
-}
-button.ghost{background:transparent}
-button:hover{filter:brightness(0.98)}
-button:disabled{opacity:.6; cursor:not-allowed}
-
+button.primary{ background:var(--accent); color:#fff; border-color:transparent; }
+button.ghost{ background:transparent }
+button:hover{ filter:brightness(0.98) }
+button:disabled{ opacity:.6; cursor:not-allowed }
 .row{display:flex; gap:10px; align-items:center}
 .row.wrap{flex-wrap:wrap}
 
 textarea,input,select{
-  width:100%;
-  border:1px solid var(--line); background:#fff;
-  border-radius:14px; padding:12px 12px;
-  font:inherit;
+  width:100%; border:1px solid var(--line); background:#fff;
+  border-radius:14px; padding:12px 12px; font:inherit;
 }
 label{display:block; margin:8px 0 10px; color:var(--muted); font-size:.92rem}
 
-/* ====== Mood Rooms ====== */
-.rooms{
-  display:flex; gap:8px; overflow:auto; padding:2px 2px 8px;
-  scrollbar-width:none;
-}
+/* ---------- Mood Rooms ---------- */
+.rooms{ display:flex; gap:8px; overflow:auto; padding:2px 2px 8px; scrollbar-width:none; }
 .rooms::-webkit-scrollbar{display:none}
 .mood-chip{
   display:inline-flex; align-items:center; gap:8px;
   padding:8px 12px; border-radius:999px; border:1px solid var(--line);
   background:#fff; white-space:nowrap; color:#374151;
 }
-.mood-chip .i{font-size:16px}
-.mood-chip.active{background:var(--accent); color:#fff; border-color:transparent}
-.mood-title{font-weight:700; margin:4px 4px 10px}
+.mood-chip.active{ background:var(--accent); color:#fff; border-color:transparent }
+.mood-title{ font-weight:700; margin:4px 4px 10px }
 
-/* ====== Composer ====== */
-.composer textarea{resize:vertical; min-height:74px}
-.composer .hint{color:var(--muted); font-size:.9rem}
+/* ---------- Composer ---------- */
+.composer textarea{ resize:vertical; min-height:74px }
+.composer .hint{ color:var(--muted); font-size:.9rem }
 
-/* ====== Feed Item ====== */
-.post{display:flex; gap:12px}
+/* ---------- Feed Item ---------- */
+.post{ display:flex; gap:12px }
 .avatar{
   width:42px; height:42px; border-radius:50%; flex:0 0 42px;
   display:flex; align-items:center; justify-content:center;
-  background:var(--accent);   /* เดิมเป็นกราเดียน → เปลี่ยนเป็นสีทึบ */
-  color:#fff; font-weight:700;
+  background:#e7e5e4; color:#374151; font-weight:700; /* ไม่มีสีสด/กราเดียน */
 }
 .post .body{flex:1}
-.post .meta{color:var(--muted); font-size:.85rem; display:flex; gap:8px; flex-wrap:wrap}
-.post .text{margin:4px 0 8px; line-height:1.5}
-.post .actions{display:flex; gap:8px; flex-wrap:wrap}
-.post .actions button{padding:8px 12px}
+.post .meta{ color:var(--muted); font-size:.85rem; display:flex; gap:8px; flex-wrap:wrap }
+.post .text{ margin:4px 0 8px; line-height:1.5 }
+.post .actions{ display:flex; gap:8px; flex-wrap:wrap }
+.post .actions button{ padding:8px 12px }
 
-/* ====== Tabbar (ล่าง) ====== */
+/* ---------- Tabbar ---------- */
 .tabbar{
   position:fixed; bottom:0; left:0; right:0; z-index:20;
   display:flex; justify-content:space-around; align-items:center;
@@ -125,23 +111,18 @@ label{display:block; margin:8px 0 10px; color:var(--muted); font-size:.92rem}
 }
 .tabbar button{
   flex:1; border:0; background:transparent; color:#111827;
-  display:flex; flex-direction:column; gap:2px; align-items:center; justify-content:center;
+  display:flex; flex-direction:column; gap:4px; align-items:center; justify-content:center;
   padding:6px 4px; border-radius:10px; font-weight:600;
 }
-.tabbar button span{font-size:.78rem; color:#6b7280; font-weight:500}
-.tabbar button.active{background:var(--accent-weak); color:#3f3a27}
+.tabbar button span{ font-size:.78rem; color:#6b7280; font-weight:500 }
+.tabbar button.active{ background:#f4f4f5; color:#111827 }
 .tabbar button.cta{
   position:relative; top:-16px; flex:0 0 64px; height:64px; width:64px;
-  background:var(--accent); color:#fff; border-radius:20px; box-shadow:0 10px 18px rgba(17,24,39,.14);
+  background:#111827; color:#fff; border-radius:20px; box-shadow:0 10px 18px rgba(17,24,39,.14);
 }
 
-/* ====== Utility ====== */
-.badge{
-  display:inline-flex; padding:2px 8px; border-radius:999px;
-  background:var(--accent-weak); color:#3f3a27; font-size:.72rem; font-weight:700;
-}
-hr.sep{border:0; border-top:1px dashed var(--line); margin:6px 0 4px}
+/* ---------- Utilities ---------- */
+.badge{ display:inline-flex; padding:2px 8px; border-radius:999px; background:#f4f4f5; color:#3f3a27; font-size:.72rem; font-weight:700 }
+hr.sep{ border:0; border-top:1px dashed var(--line); margin:6px 0 4px }
 
-@media (min-width:560px){
-  .app{margin-bottom:98px}
-}
+@media (min-width:560px){ .app{ margin-bottom:98px } }
