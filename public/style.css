@@ -118,9 +118,9 @@ label{display:block; margin:8px 0 10px; color:var(--muted); font-size:.92rem}
 .tabbar button.active{ background:#f4f4f5; color:#111827 }
 .tabbar button.cta{
   position:relative; top:-16px; flex:0 0 64px; height:64px; width:64px;
-  background:#111827; color:#fff;
+  background:#3e6645; color:#fff;
   border-radius:20px;
-  box-shadow:0 10px 18px rgba(22,163,74,.22); /* เงาเขียวอ่อนอ่านง่าย */
+  box-shadow:0 10px 18px rgba(158, 112, 81, 0.14);
 }
 
 
