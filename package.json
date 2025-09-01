@@ -1,0 +1,13 @@
+{
+"name": "thaigen-emo-social",
+"version": "1.0.0",
+"private": true,
+"type": "module",
+"scripts": {
+"dev": "wrangler pages dev ./public --d1=DB@emo_social_db",
+"migrate": "wrangler d1 execute emo_social_db --file=./migrations/001_init.sql && wrangler d1 execute emo_social_db --file=./migrations/002_indexes.sql"
+},
+"devDependencies": {
+"wrangler": "^3.80.0"
+}
+}
