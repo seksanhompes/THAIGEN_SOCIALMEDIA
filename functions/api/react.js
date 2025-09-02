@@ -1,5 +1,5 @@
-import { authUser } from '../../_lib/auth.js';
-import { json, bad } from '../../_lib/utils.js';
+import { authUser } from '../_lib/auth.js';
+import { json, bad } from '../_lib/utils.js';
 
 
 
