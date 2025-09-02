@@ -225,9 +225,20 @@
     try{ const v=JSON.parse(p.emotion_json||'[]'); if(Array.isArray(v) && v.length){ const idx=MOOD_ORDER.indexOf(mood); if(idx>=0){ const val=Number(v[idx]||0); const max=Math.max(...v.map(Number)); return val>=0.25 && (val>=max-0.12); } } }catch{}
     return false;
   }
-  async function react(id,type){
-    try{ const r=await fetch('/api/react',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({post_id:id,type})}); if(!r.ok){ const j=await r.json().catch(()=>({})); alert(j.error||'error'); } }catch{ alert('ส่งปฏิกิริยาไม่สำเร็จ'); }
-  }
+  async function react(id, type) {
+  try {
+    const r = await fetch('/api/react', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'include',                 // สำคัญมาก
+      body: JSON.stringify({ post_id: id, type })
+    });
+    if (r.status === 401) { alert('โปรดเข้าสู่ระบบ'); renderLogin(); return; }
+    const j = await r.json().catch(()=>({}));
+    if (!r.ok || !j.ok) throw new Error(j.error || r.statusText || 'ไม่ทราบสาเหตุ');
+  } catch (e) { alert(`ทำรายการไม่สำเร็จ: ${e.message}`); }
+}
+
 
   /* ---------------- Tabbar events ---------------- */
   tabbar.addEventListener('click', e=>{
