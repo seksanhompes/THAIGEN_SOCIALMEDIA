@@ -1,5 +1,9 @@
 node_modules/
+.next/
 dist/
 build/
+out/
 .env
-.DS_Store
+.env.*
+.wrangler/
+.dev.vars
